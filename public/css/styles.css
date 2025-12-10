@@ -1,0 +1,62 @@
+/* styles.css — improved, responsive UI for host + display */
+:root{
+  --bg:#0b0b0b;
+  --card:#ffffff;
+  --muted:#9aa0a6;
+  --accent:#1f7aed;
+  --glass: rgba(255,255,255,0.06);
+  --radius:14px;
+  --pad:14px;
+  font-family:Inter,system-ui,Arial,Helvetica,sans-serif;
+}
+
+html,body{height:100%;margin:0;background:var(--bg);color:#fff}
+img{display:block;max-width:100%}
+
+/* Display page */
+.display-page {
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  align-items:stretch;
+  justify-content:center;
+}
+
+#topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+#counter{font-weight:700;font-size:18px}
+#deckInfo{font-size:13px;color:var(--muted)}
+
+#imageWrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:10px}
+#img{max-height:86vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+#overlayHint{position:absolute;bottom:26px;background:rgba(0,0,0,0.5);padding:10px 16px;border-radius:999px;font-size:16px}
+.kbd{display:inline-block;background:rgba(255,255,255,0.12);padding:6px 8px;border-radius:6px;margin-left:6px}
+
+/* bottom */
+#bottombar{padding:10px 18px;display:flex;flex-direction:column;gap:6px}
+#statusLine{font-size:15px;color:var(--muted)}
+#smallHint{font-size:13px;color:#bfc7d0}
+
+/* Host page */
+.host-page{min-height:100vh;padding:18px;background:linear-gradient(180deg,#071426 0%, #051322 100%)}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+header h1{margin:0;font-size:20px}
+.controls .btn{background:var(--accent);border:none;padding:10px 14px;border-radius:10px;color:#fff;font-weight:600;cursor:pointer}
+
+main{max-width:720px;margin:18px auto;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);color:#0b0b0b;border-radius:12px;padding:18px;box-shadow:0 6px 24px rgba(0,0,0,0.35)}
+.card.small{background:transparent;color:#dfe8f5;box-shadow:none;border:1px solid rgba(255,255,255,0.04)}
+
+.seriesName{font-size:26px;font-weight:800;margin-top:8px;min-height:48px}
+.counter{margin-top:10px;font-weight:700;color:#333}
+.deckRem{margin-top:6px;color:#666;font-size:13px}
+.status{font-weight:700;color:#e86060}
+.notes{font-size:13px;color:#666;margin-top:6px}
+
+/* Buttons */
+.btn{appearance:none;border:0;padding:10px 12px;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
+
+/* responsiveness */
+@media (max-width:520px){
+  .seriesName{font-size:20px}
+  #overlayHint{font-size:14px}
+}

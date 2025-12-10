@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Guess — Display</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="display-page">
+  <div id="topbar">
+    <div id="counter">0 / 5</div>
+    <div id="deckInfo"></div>
+  </div>
+
+  <div id="imageWrap">
+    <img id="img" src="/placeholder.png" alt="Press Space" />
+    <div id="overlayHint">Press <span class="kbd">Space</span> to show next</div>
+  </div>
+
+  <div id="bottombar">
+    <div id="statusLine"></div>
+    <div id="smallHint">Organizer sees answers on their device — use Reset to play again.</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const img = document.getElementById('img');
+    const counter = document.getElementById('counter');
+    const statusLine = document.getElementById('statusLine');
+    const deckInfo = document.getElementById('deckInfo');
+
+    // prevent page scroll on space and emit request-next
+    window.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        socket.emit('request-next');
+      }
+    });
+
+    socket.on('show-image', payload => {
+      img.src = payload.url;
+      counter.textContent = `${payload.shown} / ${payload.rounds}`;
+      statusLine.textContent = '';
+      deckInfo.textContent = payload.deckRemaining !== undefined ? `Deck left: ${payload.deckRemaining}` : '';
+    });
+
+    socket.on('config', cfg => {
+      counter.textContent = `${cfg.shown} / ${cfg.rounds}`;
+      deckInfo.textContent = cfg.deckRemaining !== undefined ? `Deck left: ${cfg.deckRemaining}` : '';
+      if (!cfg.inProgress) {
+        statusLine.textContent = 'Game not in progress';
+      }
+    });
+
+    socket.on('game-over', data => {
+      statusLine.textContent = data.message || 'Rounds finished';
+    });
+
+    socket.on('deck-finished', data => {
+      // small notification, but DO NOT clear image/name
+      statusLine.textContent = data.message || 'Deck finished';
+    });
+
+    socket.on('error-msg', m => alert(m));
+  </script>
+</body>
+</html>

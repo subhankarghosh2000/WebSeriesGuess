@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Guess — Host</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="host-page">
+  <header>
+    <h1>Organiser</h1>
+    <div class="controls">
+      <button id="reset" class="btn">Reset Game</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Current Series</h2>
+      <div id="seriesName" class="seriesName">(waiting)</div>
+      <div id="counter" class="counter">0 / 5</div>
+      <div id="deckRemaining" class="deckRem">Deck left: —</div>
+    </section>
+
+    <section class="card small">
+      <div id="status" class="status">Status: idle</div>
+      <div class="notes">Rounds are fixed to <strong>5</strong>. Press Space on the display to show next image.</div>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const seriesName = document.getElementById('seriesName');
+    const counter = document.getElementById('counter');
+    const status = document.getElementById('status');
+    const deckRemaining = document.getElementById('deckRemaining');
+    const resetBtn = document.getElementById('reset');
+
+    // Reset rebuilds & reshuffles deck and clears counters
+    resetBtn.onclick = () => {
+      socket.emit('reset-game');
+    };
+
+    socket.on('show-image', payload => {
+      // show name prominently
+      seriesName.textContent = payload.name;
+      counter.textContent = `${payload.shown} / ${payload.rounds}`;
+      status.textContent = 'Showing image';
+      if (payload.deckRemaining !== undefined) deckRemaining.textContent = `Deck left: ${payload.deckRemaining}`;
+    });
+
+    socket.on('config', cfg => {
+      counter.textContent = `${cfg.shown} / ${cfg.rounds}`;
+      if (!cfg.inProgress) {
+        status.textContent = 'Not in progress';
+      } else {
+        status.textContent = 'In progress';
+      }
+      if (cfg.deckRemaining !== undefined) deckRemaining.textContent = `Deck left: ${cfg.deckRemaining}`;
+      // Don't forcibly clear seriesName on config — keep last shown name visible.
+      if (!cfg.inProgress && cfg.shown === 0) {
+        seriesName.textContent = '(waiting)';
+      }
+    });
+
+    socket.on('game-over', data => {
+      status.textContent = data.message || 'Rounds finished';
+      // keep seriesName visible (fixed bug: don't overwrite last name)
+    });
+
+    socket.on('deck-finished', data => {
+      status.textContent = data.message || 'Deck finished';
+      // keep the last series name visible
+    });
+
+    socket.on('error-msg', m => {
+      // show brief alert and status
+      alert(m);
+      status.textContent = m;
+    });
+  </script>
+</body>
+</html>
