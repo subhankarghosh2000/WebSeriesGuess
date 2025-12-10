@@ -1,4 +1,4 @@
-// server.js — fixed rounds = 5, no-repeats, deck + stable last-image behavior
+// server.js — updated: emit 'reset' to clients so display resets when host resets
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -63,6 +63,11 @@ app.get('/api/images', (req, res) => {
   res.json({ count: files.length, images: files, deckRemaining: Math.max(0, deck.length - deckIndex) });
 });
 
+// Serve display at root for convenience
+app.get('/', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'display.html'));
+});
+
 io.on('connection', socket => {
   console.log('conn:', socket.id);
 
@@ -81,6 +86,9 @@ io.on('connection', socket => {
     gameState.shown = 0;
     gameState.inProgress = false;
     io.emit('config', { rounds: gameState.rounds, shown: gameState.shown, inProgress: gameState.inProgress, deckRemaining: Math.max(0, deck.length - deckIndex) });
+
+    // NEW: emit a clear/reset event so displays can return to landing state
+    io.emit('reset', { message: 'Game reset by organiser' });
   });
 
   // When display requests next (spacebar)
@@ -94,6 +102,8 @@ io.on('connection', socket => {
       gameState.shown = 0;
       gameState.inProgress = false;
       io.emit('config', { rounds: gameState.rounds, shown: gameState.shown, inProgress: gameState.inProgress, deckRemaining: Math.max(0, deck.length - deckIndex) });
+      // Also notify clients to reset their UI
+      io.emit('reset', { message: 'Image set changed on server — deck rebuilt. Start again from host.' });
       socket.emit('error-msg', 'Image set changed on server — deck rebuilt. Start again from host.');
       return;
     }
@@ -123,7 +133,7 @@ io.on('connection', socket => {
     // increment shown count
     gameState.shown += 1;
 
-    // IMPORTANT: emit show-image first so clients always display the name.
+    // Emit show-image first so clients always display the name.
     io.emit('show-image', { url, name, shown: gameState.shown, rounds: gameState.rounds, deckRemaining: Math.max(0, deck.length - deckIndex) });
 
     // After emitting the last image, notify deck-finished AND mark inProgress=false,

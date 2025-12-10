@@ -13,8 +13,22 @@
   </div>
 
   <div id="imageWrap">
-    <img id="img" src="/placeholder.png" alt="Press Space" />
-    <div id="overlayHint">Press <span class="kbd">Space</span> to show next</div>
+    <!-- image element — hidden until first show -->
+    <img id="img" src="" alt="series" style="display:none" />
+
+    <!-- Landing overlay (visible before first image or after reset) -->
+    <div id="landingOverlay" class="landing">
+      <h1 class="title">Guess the Web Series</h1>
+      <p class="subtitle">Press <span class="kbd">Space</span> on the display to reveal images.</p>
+      <div class="landing-actions">
+        <button id="fsBtn" class="btn">Full screen</button>
+        <button id="startHint" class="btn ghost">Ready — press Space</button>
+      </div>
+    </div>
+
+    <div id="overlayHint" class="overlayHint" style="display:none">
+      Press <span class="kbd">Space</span> to show next
+    </div>
   </div>
 
   <div id="bottombar">
@@ -29,6 +43,45 @@
     const counter = document.getElementById('counter');
     const statusLine = document.getElementById('statusLine');
     const deckInfo = document.getElementById('deckInfo');
+    const landing = document.getElementById('landingOverlay');
+    const overlayHint = document.getElementById('overlayHint');
+    const fsBtn = document.getElementById('fsBtn');
+    const startHint = document.getElementById('startHint');
+
+    // helper: show landing (clear image)
+    function showLanding(message) {
+      landing.style.display = 'flex';
+      overlayHint.style.display = 'none';
+      img.style.display = 'none';
+      img.src = '';
+      statusLine.textContent = message || 'Game ready';
+      counter.textContent = `0 / 5`;
+      deckInfo.textContent = '';
+    }
+
+    // helper: show image
+    function showImage(url, shown, rounds, deckRemaining) {
+      landing.style.display = 'none';
+      img.style.display = 'block';
+      img.src = url;
+      overlayHint.style.display = 'block';
+      counter.textContent = `${shown} / ${rounds}`;
+      if (deckRemaining !== undefined) deckInfo.textContent = `Deck left: ${deckRemaining}`;
+      statusLine.textContent = '';
+    }
+
+    // Fullscreen button
+    fsBtn.onclick = () => {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+    };
+
+    startHint.onclick = () => {
+      // visual hint only — nothing required here; user should press Space on laptop
+      statusLine.textContent = 'Press Space to reveal the first image';
+    };
 
     // prevent page scroll on space and emit request-next
     window.addEventListener('keydown', e => {
@@ -39,18 +92,22 @@
     });
 
     socket.on('show-image', payload => {
-      img.src = payload.url;
-      counter.textContent = `${payload.shown} / ${payload.rounds}`;
-      statusLine.textContent = '';
-      deckInfo.textContent = payload.deckRemaining !== undefined ? `Deck left: ${payload.deckRemaining}` : '';
+      showImage(payload.url, payload.shown, payload.rounds, payload.deckRemaining);
     });
 
     socket.on('config', cfg => {
-      counter.textContent = `${cfg.shown} / ${cfg.rounds}`;
-      deckInfo.textContent = cfg.deckRemaining !== undefined ? `Deck left: ${cfg.deckRemaining}` : '';
-      if (!cfg.inProgress) {
-        statusLine.textContent = 'Game not in progress';
+      // if game reset or not in progress and shown == 0 -> show landing
+      if (!cfg.inProgress && cfg.shown === 0) {
+        showLanding('Game not in progress');
+      } else {
+        counter.textContent = `${cfg.shown} / ${cfg.rounds}`;
+        if (cfg.deckRemaining !== undefined) deckInfo.textContent = `Deck left: ${cfg.deckRemaining}`;
       }
+    });
+
+    // New: explicit reset event from server — show landing immediately
+    socket.on('reset', data => {
+      showLanding(data && data.message ? data.message : 'Game reset');
     });
 
     socket.on('game-over', data => {
@@ -58,11 +115,16 @@
     });
 
     socket.on('deck-finished', data => {
-      // small notification, but DO NOT clear image/name
       statusLine.textContent = data.message || 'Deck finished';
     });
 
-    socket.on('error-msg', m => alert(m));
+    socket.on('error-msg', m => {
+      alert(m);
+      statusLine.textContent = m;
+    });
+
+    // Initial state: show landing until first image
+    showLanding('Waiting for organiser to start');
   </script>
 </body>
 </html>

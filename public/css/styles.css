@@ -1,4 +1,4 @@
-/* styles.css — improved, responsive UI for host + display */
+/* styles.css — improved: landing + display + host styles (keep host styles from previous file) */
 :root{
   --bg:#0b0b0b;
   --card:#ffffff;
@@ -27,7 +27,43 @@ img{display:block;max-width:100%}
 #deckInfo{font-size:13px;color:var(--muted)}
 
 #imageWrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:10px}
+
+/* Image styling */
 #img{max-height:86vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+
+/* Landing overlay */
+.landing{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  background:linear-gradient(180deg, rgba(7,18,36,0.85), rgba(5,19,34,0.6));
+  color:#fff;
+  padding:20px;
+  text-align:center;
+  border-radius:10px;
+  width:calc(100% - 40px);
+  height:calc(100% - 40px);
+}
+
+.title{
+  font-size:48px;
+  letter-spacing: -1px;
+  margin:0;
+  font-weight:900;
+  text-transform:uppercase;
+  text-shadow:0 6px 30px rgba(0,0,0,0.6);
+}
+
+.subtitle{font-size:16px;color:var(--muted);margin:0}
+
+.landing-actions{display:flex;gap:12px;margin-top:6px}
+.btn{appearance:none;border:0;padding:12px 16px;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.08)}
+
 #overlayHint{position:absolute;bottom:26px;background:rgba(0,0,0,0.5);padding:10px 16px;border-radius:999px;font-size:16px}
 .kbd{display:inline-block;background:rgba(255,255,255,0.12);padding:6px 8px;border-radius:6px;margin-left:6px}
 
@@ -52,11 +88,9 @@ main{max-width:720px;margin:18px auto;display:flex;flex-direction:column;gap:12p
 .status{font-weight:700;color:#e86060}
 .notes{font-size:13px;color:#666;margin-top:6px}
 
-/* Buttons */
-.btn{appearance:none;border:0;padding:10px 12px;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
-
 /* responsiveness */
 @media (max-width:520px){
+  .title{font-size:28px}
   .seriesName{font-size:20px}
   #overlayHint{font-size:14px}
 }
